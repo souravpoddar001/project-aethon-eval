@@ -2,776 +2,365 @@
   "session": {
     "id": "session_01UU9RQUgDjP2HkX7TcdFQQn",
     "url": "https://claude.ai/code/session_01UU9RQUgDjP2HkX7TcdFQQn",
-    "model": "claude-opus-4-6",
     "repository": "souravpoddar001/project-aethon-eval",
     "branch": "claude/pensive-dirac-eo5i8q",
-    "task": "Refresh Aethon Monthly Pipeline Review report from Feb 1, 2026 to March 10, 2026 using latest HubSpot CRM data"
+    "task": "Refresh Aethon Monthly Pipeline Review report from Feb 1, 2026 to March 10, 2026 using latest HubSpot CRM + Microsoft 365 data"
   },
-  "steps": [
-    {
-      "step": 1,
-      "action": "Read uploaded PowerPoint file",
-      "tool": "Read",
-      "parameters": {
-        "file_path": "/root/.claude/uploads/14ee7b8a-b5a1-56f5-b7f1-49439366a1f3/933912d8-Aethon04PriorReportFeb12026.pptx"
-      },
-      "result": "Error: binary file cannot be read with Read tool",
-      "parallel_with": [
-        {
-          "tool": "Bash",
-          "command": "ls /home/user/project-aethon-eval/",
-          "result": "Empty repository (only .git directory)"
-        }
-      ]
-    },
-    {
-      "step": 2,
-      "action": "Install dependencies and explore repo",
-      "tool": "Bash",
-      "commands": [
-        {
-          "command": "pip install python-pptx openpyxl",
-          "result": "Successfully installed python-pptx-1.0.2, openpyxl-3.1.5, and dependencies"
-        },
-        {
-          "command": "find /home/user/project-aethon-eval -type f",
-          "result": "Only .git files found \u2014 empty repo"
-        }
-      ]
-    },
-    {
-      "step": 3,
-      "action": "Extract full PowerPoint content using python-pptx",
-      "tool": "Bash",
-      "command": "python3 script to parse all 9 slides",
-      "result_summary": {
-        "total_slides": 9,
-        "slide_structure": {
-          "slide_1": "Title \u2014 'Monthly Pipeline Review', dated Feb 1 2026, covering Dec 2025 / Jan snapshot",
-          "slide_2": "Scorecard \u2014 Revenue $574K, Pipeline $2.8M, Win Rate 32%, Avg Deal $82K, Headcount 12",
-          "slide_3": "Revenue Performance \u2014 $574K closed, 7 deals",
-          "slide_4": "Pipeline Health \u2014 $2.8M open, 22 deals",
-          "slide_5": "Forecast \u2014 $680K commit",
-          "slide_6": "Win/Loss Analysis \u2014 32% win rate",
-          "slide_7": "Marketing & Lead Source \u2014 36% marketing-sourced",
-          "slide_8": "Asks & Blockers \u2014 2 open asks",
-          "slide_9": "Risks \u2014 2 tracked risks"
-        },
-        "original_data_extracted": {
-          "revenue_closed": "$574K",
-          "revenue_target": "$600K/month",
-          "deals_closed": 7,
-          "pipeline_open": "$2.8M",
-          "pipeline_deals": 22,
-          "coverage_ratio": "1.75x vs 3x target",
-          "win_rate": "32%",
-          "avg_deal_size": "$82K",
-          "headcount": 12,
-          "forecast_commit": "$680K",
-          "marketing_sourced": "36%",
-          "reps": [
-            "Felix (enterprise)",
-            "Ana (mid-market)"
-          ],
-          "q1_quota": "$2.4M team ($1.4M Felix, $1.0M Ana)"
-        }
-      }
-    },
-    {
-      "step": 4,
-      "action": "Load HubSpot MCP tool schemas",
-      "tool": "ToolSearch",
-      "query": "select:mcp__HubSpot__search_crm_objects,mcp__HubSpot__get_crm_objects,mcp__HubSpot__query_crm_data,mcp__HubSpot__get_properties",
-      "result": "4 tool schemas loaded"
-    },
-    {
-      "step": 5,
-      "action": "Load additional HubSpot tools",
-      "tool": "ToolSearch",
-      "query": "select:mcp__HubSpot__tool_guidance,mcp__HubSpot__search_properties,mcp__HubSpot__search_owners",
-      "result": "3 tool schemas loaded"
-    },
-    {
-      "step": 6,
-      "action": "Get HubSpot tool guidance and discover deal properties",
-      "tools_called_in_parallel": [
-        {
-          "tool": "mcp__HubSpot__tool_guidance",
-          "parameters": {
-            "toolNames": [
-              "query_crm_data"
-            ]
-          },
-          "result_summary": "Received SQL query guidance including owner-resolution, property-resolution, and example queries"
-        },
-        {
-          "tool": "mcp__HubSpot__search_properties",
-          "parameters": {
-            "objectType": "DEAL",
-            "keywords": [
-              "amount",
-              "stage",
-              "close_date",
-              "pipeline",
-              "owner"
-            ]
-          },
-          "result_summary": "Found key properties: pipeline, closedate, dealstage, amount_in_home_currency, hubspot_owner_id, amount, days_to_close, etc."
-        }
-      ]
-    },
-    {
-      "step": 7,
-      "action": "Get deal property enumerations and owners",
-      "tools_called_in_parallel": [
-        {
-          "tool": "mcp__HubSpot__search_properties",
-          "parameters": {
-            "objectType": "DEAL",
-            "keywords": [
-              "dealtype",
-              "lead_source",
-              "deal_currency",
-              "createdate"
-            ]
-          },
-          "result_summary": "Found dealtype, createdate, amount_in_home_currency, dealname, hs_analytics_source, etc."
-        },
-        {
-          "tool": "mcp__HubSpot__get_properties",
-          "parameters": {
-            "objectType": "DEAL",
-            "propertyNames": [
-              "dealstage",
-              "pipeline",
-              "dealtype"
-            ]
-          },
-          "result": {
-            "pipeline_options": [
-              {
-                "value": "default",
-                "label": "Sales Pipeline"
-              }
-            ],
-            "dealstage_options": [
-              {
-                "value": "appointmentscheduled",
-                "label": "Appointment Scheduled"
-              },
-              {
-                "value": "qualifiedtobuy",
-                "label": "Qualified To Buy"
-              },
-              {
-                "value": "presentationscheduled",
-                "label": "Presentation Scheduled"
-              },
-              {
-                "value": "decisionmakerboughtin",
-                "label": "Decision Maker Bought-In"
-              },
-              {
-                "value": "contractsent",
-                "label": "Contract Sent"
-              },
-              {
-                "value": "closedwon",
-                "label": "Closed Won"
-              },
-              {
-                "value": "closedlost",
-                "label": "Closed Lost"
-              }
-            ],
-            "dealtype_options": [
-              {
-                "value": "newbusiness",
-                "label": "New Business"
-              },
-              {
-                "value": "existingbusiness",
-                "label": "Existing Business"
-              }
-            ]
-          }
-        },
-        {
-          "tool": "mcp__HubSpot__search_owners",
-          "parameters": {},
-          "result": [
+  "data_sources": {
+    "input_file": "Aethon04PriorReportFeb12026.pptx (9 slides, Feb 1 2026 report covering Dec 2025 / Jan snapshot)",
+    "hubspot_crm": {
+      "portal": 246118427,
+      "queries_executed": 8,
+      "property_lookups": 5,
+      "data_pulled": {
+        "closed_won_deals": {
+          "period": "2026-02-01 to 2026-03-10",
+          "count": 8,
+          "total": "$757,000",
+          "deals": [
             {
-              "ownerId": 91964203,
-              "name": "Sourav Poddar",
-              "isActive": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "step": 8,
-      "action": "Query closed-won deals (Feb 1 - Mar 10, 2026)",
-      "tools_called_in_parallel": [
-        {
-          "tool": "mcp__HubSpot__search_properties",
-          "parameters": {
-            "objectType": "DEAL",
-            "keywords": [
-              "source",
-              "lead_source",
-              "territory",
-              "region"
-            ]
-          },
-          "result_summary": "No custom lead_source or territory properties found; only hs_analytics_source (all OFFLINE)"
-        },
-        {
-          "tool": "mcp__HubSpot__query_crm_data",
-          "parameters": {
-            "sql": "SELECT hs_object_id, dealname, dealstage, amount_in_home_currency, closedate, dealtype, hubspot_owner_id, createdate, pipeline FROM DEAL WHERE closedate BETWEEN '2026-02-01' AND '2026-03-10' AND dealstage = 'closedwon' ORDER BY closedate"
-          },
-          "result": {
-            "total_deals": 8,
-            "total_revenue": "$757,000",
-            "deals": [
-              {
-                "name": "CloudBridge HR expansion",
-                "amount": 78000,
-                "close_date": "2026-02-10",
-                "type": "existingbusiness"
-              },
-              {
-                "name": "BrightPath Solutions \u2014 Workforce Analytics",
-                "amount": 142000,
-                "close_date": "2026-02-14",
-                "type": "newbusiness"
-              },
-              {
-                "name": "Vertex Manufacturing",
-                "amount": 65000,
-                "close_date": "2026-02-18",
-                "type": "newbusiness"
-              },
-              {
-                "name": "Greenleaf Co. renewal",
-                "amount": 180000,
-                "close_date": "2026-02-18",
-                "type": "existingbusiness"
-              },
-              {
-                "name": "Optima Staffing",
-                "amount": 52000,
-                "close_date": "2026-02-22",
-                "type": "newbusiness"
-              },
-              {
-                "name": "Nexus Financial \u2014 Enterprise",
-                "amount": 118000,
-                "close_date": "2026-02-25",
-                "type": "newbusiness"
-              },
-              {
-                "name": "Relay Workforce",
-                "amount": 37000,
-                "close_date": "2026-02-28",
-                "type": "newbusiness"
-              },
-              {
-                "name": "Meridian Corp \u2014 Insights Launch",
-                "amount": 85000,
-                "close_date": "2026-03-05",
-                "type": null
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "step": 9,
-      "action": "Query open pipeline, closed-lost deals, and won deal sources",
-      "tools_called_in_parallel": [
-        {
-          "tool": "mcp__HubSpot__query_crm_data",
-          "sql": "SELECT ... FROM DEAL WHERE dealstage NOT IN ('closedwon', 'closedlost') ORDER BY amount_in_home_currency DESC",
-          "result": {
-            "total_open_deals": 30,
-            "first_page": 25,
-            "top_deals": [
-              {
-                "name": "DataVault Corp \u2014 Enterprise",
-                "amount": 420000,
-                "stage": "contractsent",
-                "close_date": "2026-04-15"
-              },
-              {
-                "name": "Pinnacle Industries \u2014 Platform",
-                "amount": 340000,
-                "stage": "decisionmakerboughtin",
-                "close_date": "2026-04-30"
-              },
-              {
-                "name": "Summit Healthcare",
-                "amount": 285000,
-                "stage": "presentationscheduled",
-                "close_date": "2026-05-15"
-              },
-              {
-                "name": "Ironclad Security",
-                "amount": 240000,
-                "stage": "qualifiedtobuy",
-                "close_date": "2026-06-01"
-              },
-              {
-                "name": "Prism Analytics",
-                "amount": 210000,
-                "stage": "presentationscheduled",
-                "close_date": "2026-05-01"
-              },
-              {
-                "name": "TerraForce Logistics",
-                "amount": 195000,
-                "stage": "qualifiedtobuy",
-                "close_date": "2026-05-20"
-              },
-              {
-                "name": "Cascade Financial",
-                "amount": 185000,
-                "stage": "decisionmakerboughtin",
-                "close_date": "2026-04-20"
-              },
-              {
-                "name": "Orbit Media Group",
-                "amount": 165000,
-                "stage": "qualifiedtobuy",
-                "close_date": "2026-05-25"
-              },
-              {
-                "name": "BlueLine Retail",
-                "amount": 150000,
-                "stage": "appointmentscheduled",
-                "close_date": "2026-06-15"
-              },
-              {
-                "name": "Ridgeway Partners",
-                "amount": 140000,
-                "stage": "qualifiedtobuy",
-                "close_date": "2026-06-01"
-              },
-              {
-                "name": "Keystone Consulting",
-                "amount": 140000,
-                "stage": "presentationscheduled",
-                "close_date": "2026-05-10"
-              },
-              {
-                "name": "Fieldstone Ops",
-                "amount": 125000,
-                "stage": "qualifiedtobuy",
-                "close_date": "2026-06-20"
-              },
-              {
-                "name": "AeroPoint Inc",
-                "amount": 120000,
-                "stage": "appointmentscheduled",
-                "close_date": "2026-06-10"
-              },
-              {
-                "name": "Atlas Group",
-                "amount": 115000,
-                "stage": "qualifiedtobuy",
-                "close_date": "2026-07-01"
-              },
-              {
-                "name": "Trident Workforce",
-                "amount": 110000,
-                "stage": "appointmentscheduled",
-                "close_date": "2026-06-25"
-              }
-            ],
-            "additional_deals": "15 more deals ranging from $9K-$88K"
-          }
-        },
-        {
-          "tool": "mcp__HubSpot__query_crm_data",
-          "sql": "SELECT ... FROM DEAL WHERE closedate BETWEEN '2026-02-01' AND '2026-03-10' AND dealstage = 'closedlost'",
-          "result": {
-            "total_lost_deals": 5,
-            "total_lost_value": "$304,000",
-            "deals": [
-              {
-                "name": "Meridian loss \u2014 Apex Dynamics",
-                "amount": 95000,
-                "close_date": "2026-02-08"
-              },
-              {
-                "name": "Stalled \u2014 Greystone Corp",
-                "amount": 45000,
-                "close_date": "2026-02-12"
-              },
-              {
-                "name": "Meridian loss \u2014 Crestview Group",
-                "amount": 72000,
-                "close_date": "2026-02-15"
-              },
-              {
-                "name": "Meridian loss \u2014 HarborTech",
-                "amount": 58000,
-                "close_date": "2026-02-21"
-              },
-              {
-                "name": "Timing \u2014 Foresight Analytics",
-                "amount": 34000,
-                "close_date": "2026-02-26"
-              }
-            ]
-          }
-        },
-        {
-          "tool": "mcp__HubSpot__query_crm_data",
-          "sql": "SELECT ... FROM DEAL WHERE closedate BETWEEN '2026-02-01' AND '2026-03-10' AND dealstage = 'closedwon' (with hs_analytics_source)",
-          "result_summary": "All 8 won deals have hs_analytics_source = OFFLINE"
-        }
-      ]
-    },
-    {
-      "step": 10,
-      "action": "Get remaining open deals (page 2) and search for custom properties",
-      "tools_called_in_parallel": [
-        {
-          "tool": "mcp__HubSpot__query_crm_data",
-          "sql": "SELECT ... FROM DEAL WHERE dealstage NOT IN ('closedwon', 'closedlost') ... OFFSET 25",
-          "result": {
-            "remaining_deals": [
-              {
-                "name": "Nordwind seat expansion \u2014 Insights Launch",
-                "amount": 20000,
-                "stage": "presentationscheduled"
-              },
-              {
-                "name": "Hartley & Voss \u2014 Newsletter Promo",
-                "amount": 18000,
-                "stage": "presentationscheduled"
-              },
-              {
-                "name": "Cormorant analytics add-on \u2014 Insights Launch",
-                "amount": 15000,
-                "stage": "qualifiedtobuy"
-              },
-              {
-                "name": "Meridian Corp \u2014 Newsletter Promo",
-                "amount": 12000,
-                "stage": "appointmentscheduled"
-              },
-              {
-                "name": "Nordwind Logistics \u2014 Newsletter Promo",
-                "amount": 9000,
-                "stage": "appointmentscheduled"
-              }
-            ]
-          }
-        },
-        {
-          "tool": "mcp__HubSpot__search_properties",
-          "parameters": {
-            "objectType": "DEAL",
-            "keywords": [
-              "rep",
-              "sales_rep",
-              "assigned",
-              "marketing_source"
-            ]
-          },
-          "result_summary": "No custom rep/sales_rep/marketing_source properties found"
-        }
-      ]
-    },
-    {
-      "step": 11,
-      "action": "Get pipeline stage breakdown and search for marketing properties",
-      "tools_called_in_parallel": [
-        {
-          "tool": "mcp__HubSpot__search_properties",
-          "parameters": {
-            "objectType": "DEAL",
-            "keywords": [
-              "lead_source",
-              "campaign",
-              "marketing",
-              "source_type"
-            ]
-          },
-          "result_summary": "No custom marketing properties \u2014 only standard hs_analytics_source (all OFFLINE)"
-        },
-        {
-          "tool": "mcp__HubSpot__query_crm_data",
-          "sql": "SELECT dealstage, COUNT(*), SUM(amount_in_home_currency) FROM DEAL WHERE dealstage NOT IN ('closedwon', 'closedlost') GROUP BY dealstage",
-          "result": {
-            "stage_breakdown": [
-              {
-                "stage": "Appointment Scheduled",
-                "count": 6,
-                "amount": 468000
-              },
-              {
-                "stage": "Qualified To Buy",
-                "count": 12,
-                "amount": 1205000
-              },
-              {
-                "stage": "Presentation Scheduled",
-                "count": 6,
-                "amount": 711000
-              },
-              {
-                "stage": "Decision Maker Bought-In",
-                "count": 4,
-                "amount": 655000
-              },
-              {
-                "stage": "Contract Sent",
-                "count": 2,
-                "amount": 472000
-              }
-            ],
-            "total_open_pipeline": 3511000,
-            "total_open_deals": 30
-          }
-        },
-        {
-          "tool": "mcp__HubSpot__query_crm_data",
-          "sql": "SELECT DATE_TRUNC(createdate, 'MONTH'), COUNT(*), SUM(amount_in_home_currency) FROM DEAL WHERE createdate BETWEEN '2026-01-01' AND '2026-03-10' GROUP BY DATE_TRUNC(createdate, 'MONTH')",
-          "result": "Empty dataset \u2014 deal createdate values are system timestamps (June 2026), not business dates"
-        }
-      ]
-    },
-    {
-      "step": 12,
-      "action": "Compute derived metrics",
-      "type": "analysis",
-      "computations": {
-        "revenue_closed": {
-          "total": 757000,
-          "deal_count": 8,
-          "new_business": {
-            "amount": 499000,
-            "pct": "66%"
-          },
-          "existing_business": {
-            "amount": 258000,
-            "pct": "34%"
-          },
-          "vs_target": "above $600K monthly target"
-        },
-        "pipeline_open": {
-          "total": 3511000,
-          "deal_count": 30,
-          "coverage_ratio": "2.19x (3.5M / 1.6M remaining)",
-          "vs_prior": "up from $2.8M (25% growth)"
-        },
-        "win_rate": {
-          "won": 8,
-          "lost": 5,
-          "total_resolved": 13,
-          "rate": "61.5% (rounded to 62%)",
-          "vs_prior": "up from 32%"
-        },
-        "avg_deal_size": {
-          "value": 94625,
-          "rounded": 95000,
-          "vs_prior": "up from $82K"
-        },
-        "forecast": {
-          "commit": {
-            "total": 1127000,
-            "deals": [
-              "DataVault Corp $420K (Contract Sent)",
-              "Nordwind Logistics $52K (Contract Sent)",
-              "Pinnacle Industries $340K (Decision Maker)",
-              "Cascade Financial $185K (Decision Maker)",
-              "Cormorant Health $45K (Decision Maker)",
-              "Bluepeak Retail Newsletter $85K (Decision Maker)"
-            ]
-          },
-          "best_case": {
-            "total": 1838000,
-            "adds": "Summit $285K, Prism $210K, Keystone $140K, Bluepeak Insights $38K, Nordwind expansion $20K, Hartley Newsletter $18K"
-          }
-        },
-        "competitive_losses": {
-          "meridian_platform": {
-            "count": 3,
-            "total_value": 225000,
-            "deals": [
-              "Apex Dynamics $95K",
-              "Crestview Group $72K",
-              "HarborTech $58K"
-            ],
-            "assessment": "Escalated from 1 loss to 3 \u2014 now a confirmed pattern"
-          },
-          "other_losses": [
-            {
-              "name": "Greystone Corp",
-              "amount": 45000,
-              "reason": "Stalled"
+              "name": "CloudBridge HR expansion",
+              "amount": 78000,
+              "close_date": "2026-02-10",
+              "type": "existingbusiness"
             },
             {
-              "name": "Foresight Analytics",
-              "amount": 34000,
-              "reason": "Timing"
+              "name": "BrightPath Solutions \u2014 Workforce Analytics",
+              "amount": 142000,
+              "close_date": "2026-02-14",
+              "type": "newbusiness"
+            },
+            {
+              "name": "Vertex Manufacturing",
+              "amount": 65000,
+              "close_date": "2026-02-18",
+              "type": "newbusiness"
+            },
+            {
+              "name": "Greenleaf Co. renewal",
+              "amount": 180000,
+              "close_date": "2026-02-18",
+              "type": "existingbusiness"
+            },
+            {
+              "name": "Optima Staffing",
+              "amount": 52000,
+              "close_date": "2026-02-22",
+              "type": "newbusiness"
+            },
+            {
+              "name": "Nexus Financial \u2014 Enterprise",
+              "amount": 118000,
+              "close_date": "2026-02-25",
+              "type": "newbusiness"
+            },
+            {
+              "name": "Relay Workforce",
+              "amount": 37000,
+              "close_date": "2026-02-28",
+              "type": "newbusiness"
+            },
+            {
+              "name": "Meridian Corp \u2014 Insights Launch",
+              "amount": 85000,
+              "close_date": "2026-03-05",
+              "type": null
             }
           ]
         },
-        "marketing_sourced": {
-          "closed_revenue_pct": "30% ($227K of $757K)",
-          "open_pipeline_pct": "~11% ($371K of $3.5M)",
-          "campaign_tagged_open_deals": [
-            "Nordwind Logistics \u2014 Insights Launch $52K",
-            "Cormorant Health \u2014 Insights Launch $45K",
-            "Bluepeak Retail \u2014 Insights Launch $38K",
-            "Tessellate Media \u2014 Insights Launch $30K",
-            "Hartley & Voss \u2014 Insights Launch $25K",
-            "Nordwind seat expansion \u2014 Insights Launch $20K",
-            "Cormorant analytics add-on \u2014 Insights Launch $15K",
-            "Bluepeak Retail \u2014 Newsletter Promo $85K",
-            "Tessellate Media \u2014 Newsletter Promo $22K",
-            "Hartley & Voss \u2014 Newsletter Promo $18K",
-            "Meridian Corp \u2014 Newsletter Promo $12K",
-            "Nordwind Logistics \u2014 Newsletter Promo $9K"
+        "closed_lost_deals": {
+          "period": "2026-02-01 to 2026-03-10",
+          "count": 5,
+          "total": "$304,000",
+          "deals": [
+            {
+              "name": "Meridian loss \u2014 Apex Dynamics",
+              "amount": 95000,
+              "close_date": "2026-02-08",
+              "loss_reason": "Competitive - Meridian Platform"
+            },
+            {
+              "name": "Stalled \u2014 Greystone Corp",
+              "amount": 45000,
+              "close_date": "2026-02-12",
+              "loss_reason": "Stalled"
+            },
+            {
+              "name": "Meridian loss \u2014 Crestview Group",
+              "amount": 72000,
+              "close_date": "2026-02-15",
+              "loss_reason": "Competitive - Meridian Platform"
+            },
+            {
+              "name": "Meridian loss \u2014 HarborTech",
+              "amount": 58000,
+              "close_date": "2026-02-21",
+              "loss_reason": "Competitive - Meridian Platform"
+            },
+            {
+              "name": "Timing \u2014 Foresight Analytics",
+              "amount": 34000,
+              "close_date": "2026-02-26",
+              "loss_reason": "Timing"
+            }
           ]
+        },
+        "open_pipeline": {
+          "total_deals": 30,
+          "total_value": "$3,511,000",
+          "stage_breakdown": {
+            "contract_sent": {
+              "count": 2,
+              "amount": 472000
+            },
+            "decision_maker_bought_in": {
+              "count": 4,
+              "amount": 655000
+            },
+            "presentation_scheduled": {
+              "count": 6,
+              "amount": 711000
+            },
+            "qualified_to_buy": {
+              "count": 12,
+              "amount": 1205000
+            },
+            "appointment_scheduled": {
+              "count": 6,
+              "amount": 468000
+            }
+          }
         }
       }
     },
-    {
-      "step": 13,
-      "action": "Generate updated PowerPoint file",
-      "tool": "Bash",
-      "command": "python3 /tmp/update_pptx.py",
-      "changes_made": {
-        "slide_1_title": {
-          "old": "February 1, 2026   \u00b7   Covering December 2025 / January snapshot",
-          "new": "March 10, 2026   \u00b7   Covering February / early March 2026 snapshot"
-        },
-        "slide_2_scorecard": {
-          "revenue_closed": {
-            "old": "$574K \u25bc vs $600K target (red)",
-            "new": "$757K \u25b2 vs $600K target (green)"
-          },
-          "pipeline_open": {
-            "old": "$2.8M 1.75\u00d7 vs 3\u00d7 target (red)",
-            "new": "$3.5M 2.19\u00d7 vs 3\u00d7 target (red)"
-          },
-          "win_rate": {
-            "old": "32% \u25b2 vs 30% (green)",
-            "new": "62% \u25b2 vs 32% prior (green)"
-          },
-          "avg_deal_size": {
-            "old": "$82K \u25b2 vs $75K (green)",
-            "new": "$95K \u25b2 vs $82K prior (green)"
-          },
-          "headcount": "12 \u2014 unchanged"
-        },
-        "slide_3_revenue": {
-          "sidebar": {
-            "old": "$574K / 7 deals",
-            "new": "$757K / 8 deals"
-          },
-          "bullets_updated": true
-        },
-        "slide_4_pipeline": {
-          "sidebar": {
-            "old": "$2.8M / 22 deals",
-            "new": "$3.5M / 30 deals"
-          },
-          "bullets_updated": true
-        },
-        "slide_5_forecast": {
-          "sidebar": {
-            "old": "$680K",
-            "new": "$1.1M"
-          },
-          "bullets_updated": true
-        },
-        "slide_6_winloss": {
-          "sidebar": {
-            "old": "32%",
-            "new": "62%"
-          },
-          "bullets_updated": true
-        },
-        "slide_7_marketing": {
-          "sidebar": {
-            "old": "36%",
-            "new": "30%"
-          },
-          "bullets_updated": true
-        },
-        "slide_8_asks": {
-          "sidebar": {
-            "old": "2",
-            "new": "3"
-          },
-          "bullets_updated": true,
-          "third_bullet_added": "Sales-tool evaluation: decision was due mid-February \u2014 need status update and timeline to close."
-        },
-        "slide_9_risks": {
-          "sidebar": {
-            "old": "2",
-            "new": "3"
-          },
-          "bullets_updated": true,
-          "third_bullet_added": "Marketing-sourced pipeline share declining (30% closed, ~11% open). Over-reliance on outbound for Q2 is a concentration risk."
-        }
-      },
-      "output_file": "/home/user/project-aethon-eval/Aethon04_PipelineReview_Mar10_2026.pptx"
-    },
-    {
-      "step": 14,
-      "action": "Verify updated PowerPoint content",
-      "tool": "Bash",
-      "command": "python3 script to parse and print all text from updated PPTX",
-      "result": "All 9 slides verified \u2014 content matches expected updates"
-    },
-    {
-      "step": 15,
-      "action": "Git commit and push",
-      "tools": [
+    "microsoft_365": {
+      "emails_searched": 12,
+      "emails_read_full": 6,
+      "calendar_searches": 1,
+      "chat_searches": 1,
+      "sharepoint_searches": 1,
+      "key_findings": [
         {
-          "tool": "Bash",
-          "command": "git checkout -b claude/pensive-dirac-eo5i8q",
-          "result": "Branch created"
+          "source": "Email from Diane Whitfield (Mar 2, 2026)",
+          "subject": "Feb marketing attribution \u2014 pipeline breakdown",
+          "key_data": {
+            "marketing_sourced_pipeline_pct": "45%",
+            "marketing_sourced_pipeline_value": "$1.32M of $2.94M",
+            "east_territory": "55% marketing-sourced ($1.01M of $1.84M)",
+            "west_territory": "28% marketing-sourced ($0.31M of $1.10M)",
+            "top_campaign": "Q1 Workforce Analytics Webinar \u2014 8 SQLs, $840K attributed pipeline (East only)",
+            "recommendation": "Extend webinar to West territory"
+          },
+          "impact_on_report": "Corrected marketing attribution from ~11% (HubSpot deal-name inference) to 45% (Diane's internal data). Added territory-level breakdown."
         },
         {
-          "tool": "Bash",
-          "command": "git add Aethon04_PipelineReview_Mar10_2026.pptx && git commit",
-          "result": "Committed as 261c4e1"
+          "source": "Email from Diane Whitfield (Mar 7, 2026)",
+          "subject": "Re: DataVault pricing exception request",
+          "key_data": {
+            "discount_requested": "18%",
+            "justification": "3-year commitment, fintech vertical aligns with Q2 expansion target",
+            "approval_needed": "CFO sign-off required for >15% discounts",
+            "status": "Forwarded to Priya for approval"
+          },
+          "impact_on_report": "Added DataVault discount detail to Forecast and Asks slides"
         },
         {
-          "tool": "Bash",
-          "command": "git push -u origin claude/pensive-dirac-eo5i8q",
-          "result": "Pushed to remote"
+          "source": "Email from Ana Delgado (Feb 5, 2026)",
+          "subject": "Greenleaf renewal \u2014 churn risk",
+          "key_data": {
+            "threat": "Meridian Platform offering ~25% below renewal price",
+            "customer_contact": "Lisa Park, Head of People Ops",
+            "customer_tenure": "3-year customer, strong reference"
+          },
+          "impact_on_report": "Added competitive pricing intelligence to Win/Loss and Risks slides"
+        },
+        {
+          "source": "Email from Ana Delgado (Feb 16, 2026)",
+          "subject": "Greenleaf retention \u2014 discount approval",
+          "key_data": {
+            "discount": "15%",
+            "list_price": "$180,000",
+            "proposed_price": "$153,000",
+            "outcome": "Deal closed Feb 18 (confirmed by Ana)"
+          },
+          "impact_on_report": "Added discount context to Revenue Performance slide"
+        },
+        {
+          "source": "Email from J. Alvarez, Meridian Corp (Mar 7, 2026)",
+          "subject": "Meridian rollout \u2014 temporary pause",
+          "key_data": {
+            "issue": "Internal legal team paused rollout for DPA review",
+            "expected_delay": "2-3 weeks",
+            "product_concerns": "None \u2014 process issue on customer side",
+            "response": "Ana keeping onboarding slot reserved"
+          },
+          "impact_on_report": "Added as Asks & Blockers item"
+        },
+        {
+          "source": "Email from Ana Delgado (Feb 10, 2026) + Diane approval (Feb 12)",
+          "subject": "Paid media budget \u2014 overage request",
+          "key_data": {
+            "increase_requested": "$35K",
+            "reason": "LinkedIn CPCs up 22% vs plan",
+            "waitlist_status": "Pacing to ~4,400 vs 5,000 goal",
+            "approved_budget": "$275K (up from $240K)",
+            "condition": "Biweekly spend reports"
+          },
+          "impact_on_report": "Added to Marketing slide"
+        },
+        {
+          "source": "Email from Diane Whitfield (Mar 6, 2026)",
+          "subject": "Re: Veldra Insights \u2014 launch date decision",
+          "key_data": {
+            "new_launch_date": "March 22, 2026",
+            "felix_action": "Reset PR embargo",
+            "ana_action": "Customer-facing comms by Mar 9",
+            "risk": "Press kit timeline at risk from rebrand budget reallocation"
+          },
+          "impact_on_report": "Added as Risk item"
         }
       ]
-    },
-    {
-      "step": 16,
-      "action": "Deliver file to user",
-      "tool": "SendUserFile",
-      "file": "Aethon04_PipelineReview_Mar10_2026.pptx"
     }
-  ],
-  "data_sources": {
-    "input": "Uploaded PPTX: Aethon04PriorReportFeb12026.pptx",
-    "crm": "HubSpot CRM (portal 246118427) via MCP tools",
-    "queries_executed": 8,
-    "property_lookups": 5,
-    "owner_lookups": 1
   },
-  "output": {
-    "file": "Aethon04_PipelineReview_Mar10_2026.pptx",
-    "commit": "261c4e1",
-    "branch": "claude/pensive-dirac-eo5i8q",
-    "repository": "souravpoddar001/project-aethon-eval"
-  }
+  "computed_metrics": {
+    "revenue_closed": {
+      "total": 757000,
+      "deal_count": 8,
+      "new_business": {
+        "amount": 499000,
+        "pct": "66%"
+      },
+      "existing_business": {
+        "amount": 258000,
+        "pct": "34%"
+      },
+      "vs_target": "above $600K monthly target (+26%)"
+    },
+    "pipeline_open": {
+      "total": 3511000,
+      "deal_count": 30,
+      "coverage_ratio": "2.19x",
+      "vs_prior": "up from $2.8M / 22 deals / 1.75x"
+    },
+    "win_rate": {
+      "won": 8,
+      "lost": 5,
+      "total_resolved": 13,
+      "rate": "61.5% (displayed as 62%)",
+      "vs_prior": "up from 32%"
+    },
+    "avg_deal_size": {
+      "value": 94625,
+      "displayed": "$95K",
+      "vs_prior": "up from $82K"
+    },
+    "forecast": {
+      "commit": {
+        "total": 1127000,
+        "displayed": "$1.1M"
+      },
+      "best_case": {
+        "total": 1838000,
+        "displayed": "$1.8M"
+      }
+    },
+    "marketing_attribution": {
+      "source": "Diane Whitfield internal email (supersedes HubSpot deal-name inference)",
+      "pct_of_open_pipeline": "45%",
+      "territory_gap": "East 55% vs West 28%"
+    },
+    "competitive_losses": {
+      "meridian_platform_losses": 3,
+      "meridian_total_value": 225000,
+      "meridian_pricing_strategy": "~25% below list price",
+      "renewal_impact": "Greenleaf saved with 15% discount"
+    }
+  },
+  "slide_changes": {
+    "slide_1_title": {
+      "date": {
+        "old": "February 1, 2026   \u00b7   Covering December 2025 / January snapshot",
+        "new": "March 10, 2026   \u00b7   Covering February / early March 2026 snapshot"
+      }
+    },
+    "slide_2_scorecard": {
+      "revenue_closed": {
+        "old": "$574K \u25bc vs $600K (red)",
+        "new": "$757K \u25b2 vs $600K (green)"
+      },
+      "pipeline_open": {
+        "old": "$2.8M 1.75x (red)",
+        "new": "$3.5M 2.19x (red)"
+      },
+      "win_rate": {
+        "old": "32% \u25b2 vs 30%",
+        "new": "62% \u25b2 vs 32%"
+      },
+      "avg_deal_size": {
+        "old": "$82K \u25b2 vs $75K",
+        "new": "$95K \u25b2 vs $82K"
+      },
+      "headcount": "unchanged (12)"
+    },
+    "slide_3_revenue": {
+      "sidebar": {
+        "old": "$574K / 7 deals",
+        "new": "$757K / 8 deals"
+      },
+      "enrichment": "Added Greenleaf 15% discount context from Ana's email (M365)"
+    },
+    "slide_4_pipeline": {
+      "sidebar": {
+        "old": "$2.8M / 22 deals",
+        "new": "$3.5M / 30 deals"
+      },
+      "enrichment": "Added territory-level pipeline split from Diane's email (M365)"
+    },
+    "slide_5_forecast": {
+      "sidebar": {
+        "old": "$680K",
+        "new": "$1.1M"
+      },
+      "enrichment": "Added DataVault 18% discount detail from Diane's email (M365)"
+    },
+    "slide_6_winloss": {
+      "sidebar": {
+        "old": "32%",
+        "new": "62%"
+      },
+      "enrichment": "Added Meridian ~25% below list pricing from Ana's emails (M365)"
+    },
+    "slide_7_marketing": {
+      "sidebar": {
+        "old": "36%",
+        "new": "45%"
+      },
+      "enrichment": "Replaced HubSpot inference (11%) with Diane's internal attribution (45%). Added webinar stats, territory gap, paid media budget increase (M365)"
+    },
+    "slide_8_asks": {
+      "sidebar": {
+        "old": "2",
+        "new": "3"
+      },
+      "enrichment": "DataVault CFO approval, webinar West extension, Meridian Corp DPA pause \u2014 all from M365 emails"
+    },
+    "slide_9_risks": {
+      "sidebar": {
+        "old": "2",
+        "new": "3"
+      },
+      "enrichment": "Meridian pricing aggression detail, West territory gap, Veldra launch risk \u2014 all enriched by M365"
+    }
+  },
+  "m365_vs_hubspot_only_improvements": [
+    "Marketing attribution corrected from ~11% (deal-name inference) to 45% (Diane's internal data)",
+    "Territory-level pipeline breakdown added (East $1.84M / West $1.10M)",
+    "Workforce Analytics Webinar stats: 8 SQLs, $840K pipeline \u2014 not visible in HubSpot",
+    "DataVault 18% discount and CFO approval requirement \u2014 not in CRM",
+    "Meridian competitive pricing strategy (~25% below list) \u2014 from Ana's customer emails",
+    "Greenleaf 15% discount to counter Meridian \u2014 deal context invisible in CRM ($180K booked at list)",
+    "Meridian Corp rollout pause (legal DPA review) \u2014 customer email not in CRM",
+    "Paid media budget increase ($240K \u2192 $275K, LinkedIn CPCs +22%) \u2014 operational detail",
+    "Veldra Insights launch reschedule (Mar 22) \u2014 product launch risk for Q2 pipeline"
+  ]
 }
